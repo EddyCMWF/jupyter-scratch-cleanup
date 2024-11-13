@@ -352,6 +352,8 @@ parser.add_argument('--test-run', action='store_true')
 
 parser.add_argument('path', nargs='+')
 args = parser.parse_args()
+if args.low > args.high:
+    args.low = args.high
 print(f"{args}")
 if not args.test_run:
     for p in args.path:
