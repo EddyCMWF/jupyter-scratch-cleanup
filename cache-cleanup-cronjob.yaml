@@ -16,7 +16,7 @@ spec:
             args:
               - "/mnt/cache" # path to clean up
               - "high" # path to clean up
-              - 10 # path to clean up
+              - "10" # path to clean up
             resources:
               requests:
                 memory: "512Mi"  # Minimum memory requested
