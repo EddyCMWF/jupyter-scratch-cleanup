@@ -15,6 +15,13 @@ spec:
             image: eccr.ecmwf.int/c3s-applications/jupyter-scratch-cleanup
             args:
               - "/mnt/cache" # path to clean up
+            resources:
+              requests:
+                memory: "512Mi"  # Minimum memory requested
+                cpu: "1000m"      # Minimum CPU requested
+              limits:
+                memory: "1024Mi"  # Maximum memory allowed
+                cpu: "1500m"      # Maximum CPU allowed
             volumeMounts:
               - name: cache-volume
                 mountPath: /mnt/cache  # This is where the PVC will be mounted in the container
