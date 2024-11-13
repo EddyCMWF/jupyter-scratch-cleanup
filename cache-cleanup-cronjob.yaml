@@ -3,21 +3,21 @@ kind: CronJob
 metadata:
   name: scratch-cleanup
 spec:
-  schedule: "*/5 * * * *"  # Runs every 5 minutes
+  schedule: "0 * * * *"
   jobTemplate:
     spec:
       template:
         spec:
           containers:
           - name: scratch-cleanup
-            image: scratch-cleanup:latest  # Replace with your image
+            image: eccr.ecmwf.int/c3s-applications/jupyter-scratch-cleanup
             args:
-              - "/mnt/cache"     # Argument 1 for the script
+              - "/mnt/cache" # path to clean up
             volumeMounts:
               - name: cache-volume
                 mountPath: /mnt/cache  # This is where the PVC will be mounted in the container
           volumes:
-            - name: my-pvc-volume
+            - name: cache-volume
               persistentVolumeClaim:
-                claimName: my-existing-pvc  # Replace with the name of your PVC
+                claimName: scratch
           restartPolicy: OnFailure  # Restart if the job fails
