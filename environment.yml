@@ -1,0 +1,19 @@
+
+channels:
+- conda-forge
+- nodefaults
+dependencies:
+- time
+- pip
+- pip: 
+  - argparse
+  - collections
+  - contextlib
+  - datetime
+  - errno
+  - logging
+  - os
+  - sqlite3
+  - stat
+
+  
