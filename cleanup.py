@@ -139,7 +139,7 @@ def number_of_files(cursor):
 
 ##########################################################
 
-def _scan(path, cursor):
+def _scan(path, cursor, preserve_dirs=False):
 
     files = []
 
@@ -157,25 +157,30 @@ def _scan(path, cursor):
         if s is None:
             continue
 
+        # loop over files in directories
+        if s.isdir(filename):
+            _scan(filename, cursor, preserve_dirs=preserve_dirs)
+            # If preserving directories, do not add to the database
+            if preserve_dirs:
+                continue
+
+        files.append(s)
+
+        # Flush to DB every 10000 files
         if len(files) >= 10000:
             flush(files)
             files = []
 
-        files.append(s)
-
-        if s.isdir:
-            _scan(full, cursor)
-
     flush(files)
 
 
-def scan(path):
+def scan(path, preserve_dirs=False):
     with closing(database(path)) as conn:
         cursor = conn.cursor()
 
         before = number_of_files(cursor)
 
-        _scan(os.path.realpath(path), cursor)
+        _scan(os.path.realpath(path), cursor, preserve_dirs=preserve_dirs)
 
         after = number_of_files(cursor)
 
@@ -323,14 +328,13 @@ def delete_files(path, target, maximum):
     return count
 
 
-def process(path, high, low, max):
+def process(path, high, low, max, preserve_dirs=False):
     used, total = df(path)
-
+    logger.info("%s: %d%% (total %s)" % (path, used, bytes_to_string(total)))
     if used > high:
-        logger.info("%s: %d%% (total %s)" % (path, used, bytes_to_string(total)))
         while used > low:
             if delete_files(path, total * (used - low) / 100, max) == 0:
-                if scan(path) == 0:
+                if scan(path, preserve_dirs) == 0:
                     logger.warning("No files deleted under %s, "
                                    "and no candidates for deletion found" % (path,))
                     break
@@ -348,6 +352,7 @@ parser.add_argument('--low', type=int, default=70)
 parser.add_argument('--max', type=int, default=10000)
 parser.add_argument('--scan', action='store_true')
 parser.add_argument('--test-run', action='store_true')
+parser.add_argument('--preserve-dirs', action='store_true')
 
 
 parser.add_argument('path', nargs='+')
@@ -360,7 +365,7 @@ if not args.test_run:
         if args.scan:
             scan(p)
         else:
-            process(p, args.high, args.low, args.max)
+            process(p, args.high, args.low, args.max, args.preserve_dirs)
 else:
     print("Test run, script loaded successfully")
 
