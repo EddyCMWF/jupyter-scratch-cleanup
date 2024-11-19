@@ -37,7 +37,7 @@ SELECT COUNT(*) FROM files;
 """
 
 SELECT = """
-SELECT * FROM files ORDER BY atime LIMIT ?
+SELECT * FROM files ORDER BY TIME_ORDER LIMIT ?
 """
 
 DELETE = """
@@ -275,7 +275,7 @@ def delete_file(oldstat):
     return None
 
 
-def _delete_files(cursor, target, maximum):
+def _delete_files(cursor, target, maximum, time_order="mtime"):
 
     to_delete = []
     to_update = []
@@ -285,7 +285,7 @@ def _delete_files(cursor, target, maximum):
     oldest = None
     youngest = None
 
-    cursor.execute(SELECT, (maximum,))
+    cursor.execute(SELECT.replace("TIME_ORDER", time_order), (maximum,))
     for row in cursor:
         row = FileStat(*row)
         s = delete_file(row)
@@ -311,29 +311,29 @@ def _delete_files(cursor, target, maximum):
     return before - after, total, oldest, youngest
 
 
-def delete_files(path, target, maximum):
+def delete_files(path, target, maximum, time_order="mtime"):
 
     logger.info("Deleting %s from %s" % (bytes_to_string(target), path))
 
     with closing(database(path)) as conn:
         cursor = conn.cursor()
-        count, volume, oldest, youngest = _delete_files(cursor, target, maximum)
-        logger.info("(%s): Deleted %d entries, size: %s, oldest: %s, youngest: %s" % (path,
-                                                                                      count,
-                                                                                      bytes_to_string(volume),
-                                                                                      second_to_string(oldest),
-                                                                                      second_to_string(youngest)))
+        count, volume, oldest, youngest = _delete_files(cursor, target, maximum, time_order=time_order)
+        logger.info(
+            f"({path}): Deleted {count} entries, size: {bytes_to_string(volume)}, "
+            f"oldest: {second_to_string(oldest)}, youngest: {second_to_string(youngest)}"
+        )
         conn.commit()
 
     return count
 
 
-def process(path, high, low, max, preserve_dirs=False):
+def process(path, high, low, max, preserve_dirs, time_order):
     used, total = df(path)
     logger.info("%s: %d%% (total %s)" % (path, used, bytes_to_string(total)))
     if used > high:
+        logger.info(f"Cleaning up {path} in order of oldest {time_order}")
         while used > low:
-            if delete_files(path, total * (used - low) / 100, max) == 0:
+            if delete_files(path, total * (used - low) / 100, max, time_order=time_order) == 0:
                 if scan(path, preserve_dirs) == 0:
                     logger.warning("No files deleted under %s, "
                                    "and no candidates for deletion found" % (path,))
@@ -353,6 +353,7 @@ parser.add_argument('--max', type=int, default=10000)
 parser.add_argument('--scan', action='store_true')
 parser.add_argument('--test-run', action='store_true')
 parser.add_argument('--preserve-dirs', action='store_true')
+parser.add_argument('--time-order', type=str, default='mtime')
 
 
 parser.add_argument('path', nargs='+')
@@ -365,7 +366,9 @@ if not args.test_run:
         if args.scan:
             scan(p)
         else:
-            process(p, args.high, args.low, args.max, args.preserve_dirs)
+            process(
+                p, args.high, args.low, args.max, args.preserve_dirs, args.time_order)
+            )
 else:
     print("Test run, script loaded successfully")
 

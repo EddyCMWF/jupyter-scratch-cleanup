@@ -3,7 +3,7 @@ kind: CronJob
 metadata:
   name: scratch-cleanup
 spec:
-  schedule: "0 * * * *"
+  schedule: "0 0 1 1 1"
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
@@ -15,8 +15,10 @@ spec:
             image: eccr.ecmwf.int/c3s-applications/jupyter-scratch-cleanup
             args:
               - "/mnt/cache" # path to clean up
-              - "high" # path to clean up
-              - "10" # path to clean up
+              - "--high"     # percentage when to start cleaning up
+              - "80"
+              # - "--max"
+              # - "2"
             resources:
               requests:
                 memory: "512Mi"  # Minimum memory requested
