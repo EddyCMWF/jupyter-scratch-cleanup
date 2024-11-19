@@ -17,6 +17,8 @@ spec:
               - "/mnt/cache" # path to clean up
               - "--high"     # percentage when to start cleaning up
               - "80"
+              - "--time-order"
+              - "mtime"      # Choose time-stamp to order files by (atime is not currently supported)
               # - "--max"
               # - "2"
             resources:
