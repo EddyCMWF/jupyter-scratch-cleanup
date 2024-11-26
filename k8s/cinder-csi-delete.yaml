@@ -1,0 +1,11 @@
+allowVolumeExpansion: false
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: cinder-csi
+parameters:
+  allowVolumeExpansion: "False"
+  availability: nova
+provisioner: cinder.csi.openstack.org
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
