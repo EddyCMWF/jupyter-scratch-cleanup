@@ -19,6 +19,7 @@ spec:
               - "80"
               - "--time-order"
               - "mtime"      # Choose time-stamp to order files by (atime is not currently supported)
+              - "--preserve-dirs"
             resources:
               requests:
                 memory: "512Mi"  # Minimum memory requested
