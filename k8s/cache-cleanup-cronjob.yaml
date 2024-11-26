@@ -12,7 +12,7 @@ spec:
         spec:
           containers:
           - name: scratch-cleanup
-            image: eccr.ecmwf.int/cloud/scratch-cleanup
+            image: eccr.ecmwf.int/c3s-applications/scratch-cleanup
             args:
               - "/mnt/cache" # path to clean up
               - "--high"     # percentage when to start cleaning up
