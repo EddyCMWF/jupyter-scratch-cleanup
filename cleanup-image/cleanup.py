@@ -367,7 +367,7 @@ if not args.test_run:
             scan(p)
         else:
             process(
-                p, args.high, args.low, args.max, args.preserve_dirs, args.time_order)
+                p, args.high, args.low, args.max, args.preserve_dirs, args.time_order
             )
 else:
     print("Test run, script loaded successfully")
